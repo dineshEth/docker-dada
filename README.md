@@ -1,11 +1,17 @@
 # Image Backend API
 
-A simple FastAPI backend for image processing.
+A simple FastAPI backend for image processing with a beautiful Docker-themed landing page.
+
+## Preview
+
+![Home Page Preview](screenshots/home-page.svg)
+
+*The actual page has a full Docker-themed design with interactive features. Run the server and visit http://localhost:8000 to see it live.*
 
 ## Endpoints
 
-- **GET /** - Root endpoint that returns a welcome message
-- **GET /health** - Health check endpoint that returns API status
+- **GET /** - Root endpoint that returns a welcome message with Docker-themed UI
+- **GET /health** - Health check endpoint that returns API status in JSON format
 
 ## Setup
 
@@ -29,3 +35,4 @@ A simple FastAPI backend for image processing.
 
 - The server will reload automatically during development when using `--reload` flag
 - FastAPI provides automatic interactive API documentation at http://localhost:8000/docs
+- UI templates are in the `templates/` directory for easy customization

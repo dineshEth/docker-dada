@@ -4,12 +4,13 @@ from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 import time
 from pathlib import Path
+from redis.asyncio import Redis
 
 app = FastAPI(title="Image Backend API")
 start_time = time.time()
 
-# Counter state
-counter = 0
+# Redis client for persistent counter
+redis = Redis(host="localhost", port=6379, db=0)
 
 # Serve static files from public directory
 app.mount("/public", StaticFiles(directory="public"), name="public")
@@ -48,19 +49,20 @@ async def health_check():
 async def increment_counter():
     """POST endpoint that increments a global hit counter by 1.
     
+    Uses Redis to persist the counter value across server restarts.
     Returns the current counter value along with a UTC timestamp and metadata.
     Each call to this endpoint increases the counter sequentially.
     """
-    global counter
-    counter += 1
+    counter = await redis.incr("hit_counter")
     now = datetime.now(timezone.utc)
     return {
         "counter": counter,
         "timestamp": now.isoformat(),
-        "description": "Global request counter incremented by 1",
+        "description": "Global request counter incremented by 1 (persisted in Redis)",
         "endpoint": "/counter",
         "method": "POST",
-        "increment_by": 1
+        "increment_by": 1,
+        "storage": "redis"
     }
 
 

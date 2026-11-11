@@ -2,11 +2,13 @@
 
 A simple FastAPI backend for image processing with a beautiful Docker-themed landing page.
 
-## Preview
+## Docker Developer Guide
 
-![Home Page Preview](screenshots/home-page.svg)
+Download the comprehensive Docker Developer Guide created by Dinesh:
 
-*The actual page has a full Docker-themed design with interactive features. Run the server and visit http://localhost:8000 to see it live.*
+[📄 Download Docker_Developer_Guide_by_Dinesh.pdf](public/Docker_Developer_Guide_by_Dinesh.pdf)
+
+This guide covers Docker essentials for developers and is included in this repository.
 
 ## Quick Start with Docker (Recommended)
 

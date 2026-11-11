@@ -3,14 +3,20 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 import time
+import os
 from pathlib import Path
 from redis.asyncio import Redis
 
 app = FastAPI(title="Image Backend API")
 start_time = time.time()
 
-# Redis client for persistent counter
-redis = Redis(host="localhost", port=6379, db=0)
+# Redis client - uses environment variables from Docker Compose
+# Defaults to localhost:6379 for local development outside Docker
+redis = Redis(
+    host=os.getenv("REDIS_HOST", "localhost"),
+    port=int(os.getenv("REDIS_PORT", 6379)),
+    db=0
+)
 
 # Serve static files from public directory
 app.mount("/public", StaticFiles(directory="public"), name="public")

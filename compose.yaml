@@ -1,0 +1,29 @@
+# Docker Compose Configuration File
+# Project: first-api (FastAPI + Redis Counter Application)
+# Uses Docker Compose Specification (modern format)
+# Reference: https://docs.docker.com/compose/compose-file/
+
+name: first-api  # Project name - prefix for all resources (containers, networks, volumes)
+
+services:
+  # Redis Service - In-memory data store with persistence enabled
+  redis:
+    image: redis:7-alpine  # Official Redis 7 image with Alpine Linux (lightweight)
+    command: redis-server --appendonly yes  # Enable Append-Only File persistence for durability
+    volumes:
+      - redis-data:/data  # Mount named volume to Redis default data directory
+
+  # API Service - FastAPI application server
+  api:
+    build: .  # Build image from Dockerfile in current directory
+    ports:
+      - "8000:8000"  # Map host port 8000 to container port 8000 (HOST:CONTAINER)
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis  # Service name used as hostname (Docker internal DNS)
+      REDIS_PORT: 6379  # Default Redis port
+
+# Named Volumes - Persistent data storage
+volumes:
+  redis-data:  # Named volume for Redis data persistence

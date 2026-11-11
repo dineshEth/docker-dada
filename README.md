@@ -8,12 +8,44 @@ A simple FastAPI backend for image processing with a beautiful Docker-themed lan
 
 *The actual page has a full Docker-themed design with interactive features. Run the server and visit http://localhost:8000 to see it live.*
 
-## Endpoints
+## Quick Start with Docker (Recommended)
 
-- **GET /** - Root endpoint that returns a welcome message with Docker-themed UI
-- **GET /health** - Health check endpoint that returns API status in JSON format
+The easiest way to run this application is with Docker:
 
-## Setup
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) installed on your system
+
+### Option 1: Using Docker Compose
+```bash
+# Build and run the container
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Access the application
+# http://localhost:8000
+
+# Stop the container
+docker-compose down
+```
+
+### Option 2: Using Docker directly
+```bash
+# Build the image
+docker build -t image-backend-api .
+
+# Run the container
+docker run -d -p 8000:8000 --name image-backend image-backend-api
+
+# Access the application
+# http://localhost:8000
+
+# Stop the container
+docker stop image-backend && docker rm image-backend
+```
+
+## Development Setup (Without Docker)
 
 1. Install dependencies:
    ```bash
@@ -31,8 +63,14 @@ A simple FastAPI backend for image processing with a beautiful Docker-themed lan
    curl http://localhost:8000/health
    ```
 
-## Development
+## Endpoints
+
+- **GET /** - Root endpoint that returns a welcome message with Docker-themed UI
+- **GET /health** - Health check endpoint that returns API status in JSON format
+
+## Development Notes
 
 - The server will reload automatically during development when using `--reload` flag
 - FastAPI provides automatic interactive API documentation at http://localhost:8000/docs
 - UI templates are in the `templates/` directory for easy customization
+- For Docker development with auto-reload, uncomment the `--reload` flag in docker-compose.yml

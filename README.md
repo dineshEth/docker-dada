@@ -13,28 +13,25 @@ A FastAPI-based backend application with Redis persistence, featuring a Docker-t
 
 ### Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client Browser                        │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     FastAPI Application                      │
-│  ┌─────────────┐    ┌─────────────┐    ┌──────────────────┐ │
-│  │  / (HTML)   │    │ /health     │    │ /counter (POST)  │ │
-│  │  Landing    │    │ Health Check│    │ Redis Counter    │ │
-│  └─────────────┘    └─────────────┘    └──────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        Redis 7 (Persistent)                 │
-│                      ┌─────────────────┐                      │
-│                      │   hit_counter   │                      │
-│                      │   (AOF enabled) │                      │
-│                      └─────────────────┘                      │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Docker["🐳 Docker Compose: first-api"]
+        api["🚀 API Service\nFastAPI + Uvicorn\nPort: 8000"]
+        redis["🔴 Redis Service\nRedis 7-alpine\nAOF Persistence"]
+        volume[("💾 redis-data volume")]
+        
+        api -->|connects to\nREDIS_HOST=redis:6379| redis
+        redis -->|stores data in| volume
+    end
+    
+    User["👤 User"] -->|HTTP Requests| HostPort["Host Port 8000"]
+    HostPort -->|forwards to| api
+    
+    classDef service fill:#f9f,stroke:#333,stroke-width:2px
+    classDef storage fill:#bbf,stroke:#333,stroke-width:2px
+    class api,redis service
+    class volume storage
+    style Docker fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray: 5 5
 ```
 
 ### Tech Stack
@@ -48,6 +45,22 @@ A FastAPI-based backend application with Redis persistence, featuring a Docker-t
 | Container | Docker | Latest |
 | Orchestration | Docker Compose | Latest |
 
+### 📊 Diagrams
+
+For detailed visualizations of the application architecture, see the comprehensive Mermaid diagram file:
+
+📄 **[`docs/architecture.mmd`](docs/architecture.mmd)** - Contains 7 detailed diagrams:
+
+1. **Docker Compose Infrastructure** - Complete service and volume layout
+2. **Application Request Flow** - Sequence diagrams for all endpoints
+3. **System Architecture** - C4 Context level view
+4. **Docker Network Architecture** - Network and port mapping
+5. **Data Flow Diagram** - How requests flow through the system
+6. **Endpoint Reference Card** - Quick visual reference for all API endpoints
+7. **Deployment View** - Development vs Production setup comparison
+
+> 💡 **Note**: These diagrams can be viewed directly in GitHub, GitLab, VS Code, or any Mermaid-compatible editor.
+
 ## ✨ Features
 
 - **Landing Page**: Beautiful Docker-themed HTML interface
@@ -58,6 +71,7 @@ A FastAPI-based backend application with Redis persistence, featuring a Docker-t
 - **Docker Ready**: Production-ready container configuration
 
 ---
+
 
 ## 📋 Quick Start (Docker Recommended)
 
@@ -264,6 +278,8 @@ first-app/
 ├── compose.yaml               # Docker Compose orchestrator
 ├── README.md                  # This file
 ├── .gitignore                 # Git ignore patterns
+├── docs/
+│   └── architecture.mmd       # Mermaid architecture diagrams
 ├── templates/
 │   └── index.html             # Landing page HTML template
 └── public/

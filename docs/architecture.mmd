@@ -1,0 +1,366 @@
+%% Mermaid Architecture Diagrams for Image Backend API
+%% =====================================================
+%% 
+%% This file contains Mermaid diagrams that visualize the application architecture.
+%% These can be rendered in README.md files that support Mermaid (GitHub, GitLab, VS Code, etc.)
+%% 
+%% Usage:
+%%   - Include in markdown: ```mermaid
+%%   - Paste diagram code here
+%%   - ```
+%% 
+
+%% ============================================================================
+%% DIAGRAM 1: Docker Compose Infrastructure Overview
+%% ============================================================================
+
+```mermaid
+flowchart TD
+    %% ---------------------------------------------------------------------------
+    %% Configuration
+    %% ---------------------------------------------------------------------------
+    config[("compose.yaml")]
+    
+    %% ---------------------------------------------------------------------------
+    %% Services
+    %% ---------------------------------------------------------------------------
+    subgraph Docker["🐳 Docker Compose: first-api"]
+        direction TB
+        
+        %% API Service
+        api["🚀 API Service"]
+        apiDesc["FastAPI + Uvicorn\nPort: 8000"]
+        dockerfile[("Dockerfile")]
+        
+        %% Redis Service
+        redis["🔴 Redis Service"]
+        redisDesc["Redis 7-alpine\nAOF Persistence"]
+        
+        %% Volume
+        volume[("💾 redis-data volume")]
+        
+        %% Connections
+        api -->|builds from| dockerfile
+        redis -->|stores data in| volume
+        api -->|connects to\nREDIS_HOST=redis:6379| redis
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% Host Machine
+    %% ---------------------------------------------------------------------------
+    subgraph Host["💻 Host Machine"]
+        port8000["Port 8000"]
+        user["👤 User"]
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% External Connections
+    %% ---------------------------------------------------------------------------
+    user -->|HTTP Requests| port8000
+    port8000 -->|forwards to| api
+    
+    %% ---------------------------------------------------------------------------
+    %% Styling
+    %% ---------------------------------------------------------------------------
+    classDef service fill:#f9f,stroke:#333,stroke-width:2px
+    classDef storage fill:#bbf,stroke:#333,stroke-width:2px
+    classDef config fill:#9f9,stroke:#333,stroke-width:2px
+    classDef host fill:#fff,stroke:#333,stroke-width:1px
+    
+    class api,redis service
+    class volume storage
+    class config,compose.yaml config
+    class user,port8000 host
+    
+    style config fill:#9f9,stroke:#333
+    style Docker fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray: 5 5
+    style Host fill:#f8f8f8,stroke:#666,stroke-width:2px
+```
+
+
+%% ============================================================================
+%% DIAGRAM 2: Application Request Flow
+%% ============================================================================
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant API as FastAPI (Port 8000)
+    participant Redis as Redis (Port 6379)
+    
+    %% ---------------------------------------------------------------------------
+    %% GET / Request
+    %% ---------------------------------------------------------------------------
+    User->>Browser: Navigate to http://localhost:8000/
+    Browser->>API: GET /
+    API->>Browser: HTML Response (index.html)
+    Browser->>User: Render Landing Page
+    
+    %% ---------------------------------------------------------------------------
+    %% GET /health Request
+    %% ---------------------------------------------------------------------------
+    User->>Browser: curl http://localhost:8000/health
+    Browser->>API: GET /health
+    API->>API: Calculate Uptime
+    API->>API: Generate Timestamp
+    API->>Browser: JSON Response
+    Browser->>User: Display Health Status
+    
+    %% ---------------------------------------------------------------------------
+    %% POST /counter Request
+    %% ---------------------------------------------------------------------------
+    User->>Browser: curl -X POST http://localhost:8000/counter
+    Browser->>API: POST /counter
+    API->>Redis: INCR hit_counter
+    Redis->>API: Return incremented value
+    API->>API: Generate Timestamp
+    API->>Browser: JSON Response with counter
+    Browser->>User: Display Counter Value
+    
+    %% ---------------------------------------------------------------------------
+    %% Styling
+    %% ---------------------------------------------------------------------------
+    rect rgb(240, 248, 255)
+        User
+        Browser
+    end
+    rect rgb(255, 240, 240)
+        API
+    end
+    rect rgb(255, 240, 245)
+        Redis
+    end
+```
+
+
+%% ============================================================================
+%% DIAGRAM 3: System Architecture (C4 Context Level)
+%% ============================================================================
+
+```mermaid
+C4Context
+    title Image Backend API - System Context Diagram
+    
+    Person(user, "User", "Interacts with the application via browser or API clients")
+    
+    System(api, "Image Backend API", "FastAPI application serving web pages and REST endpoints")
+    System(redis, "Redis", "In-memory data store with persistence")
+    
+    Rel(user, api, "Uses", "HTTP/HTTPS")
+    Rel(api, redis, "Stores data", "Redis protocol\nPort 6379")
+    
+    %% ---------------------------------------------------------------------------
+    %% Container view embedded
+    %% ---------------------------------------------------------------------------
+    System_Ext(browser, "Web Browser", "Renders HTML, executes JavaScript")
+    System_Ext(staticFiles, "Static Files", "HTML, CSS, JS, PDFs")
+    
+    Rel(user, browser, "Uses")
+    Rel(browser, api, "HTTP Requests")
+    Rel(api, staticFiles, "Serves")
+```
+
+
+%% ============================================================================
+%% DIAGRAM 4: Docker Network Architecture
+%% ============================================================================
+
+```mermaid
+flowchart LR
+    %% ---------------------------------------------------------------------------
+    %% Network Layout
+    %% ---------------------------------------------------------------------------
+    subgraph Network["Docker Network: first-api_default"]
+        direction TB
+        
+        apiContainer["🐳 api\nContainer\n0.0.0.0:8000"]
+        redisContainer["🐳 redis\nContainer\nredis:6379"]
+        
+        apiContainer -.->|TCP| redisContainer
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% Host Interface
+    %% ---------------------------------------------------------------------------
+    Host["🖥️  Host Machine"]
+    HostPort["127.0.0.1:8000"]
+    
+    Host -->|Port Mapping| HostPort
+    HostPort -->|Forwards to| apiContainer
+    
+    %% ---------------------------------------------------------------------------
+    %% Storage
+    %% ---------------------------------------------------------------------------
+    subgraph Storage["Volumes"]
+        redisVolume["💾 redis-data\nNamed Volume"]
+    end
+    
+    redisContainer -->|/data| redisVolume
+    
+    %% ---------------------------------------------------------------------------
+    %% Styling
+    %% ---------------------------------------------------------------------------
+    classDef container fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    classDef host fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef storage fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef network fill:#fff3e0,stroke:#f57c00,stroke-width:2px,stroke-dasharray: 5 5
+    
+    class apiContainer,redisContainer container
+    class Host,HostPort host
+    class redisVolume storage
+    class Network network
+```
+
+
+%% ============================================================================
+%% DIAGRAM 5: Data Flow Diagram
+%% ============================================================================
+
+```mermaid
+flowchart TD
+    %% ---------------------------------------------------------------------------
+    %% User Actions
+    %% ---------------------------------------------------------------------------
+    A["User Action"]
+    
+    %% ---------------------------------------------------------------------------
+    %% Request Types
+    %% ---------------------------------------------------------------------------
+    A --> B1["GET /"]
+    A --> B2["GET /health"]
+    A --> B3["POST /counter"]
+    A --> B4["GET /docs"]
+    A --> B5["GET /public/..."]
+    
+    %% ---------------------------------------------------------------------------
+    %% API Processing
+    %% ---------------------------------------------------------------------------
+    B1 --> C1["Return index.html template"]
+    B2 --> C2["Generate health status\nCalculate uptime"]
+    B3 --> C3["Redis INCR hit_counter"]
+    B4 --> C4["Generate OpenAPI docs"]
+    B5 --> C5["Serve static file"]
+    
+    %% ---------------------------------------------------------------------------
+    %% Responses
+    %% ---------------------------------------------------------------------------
+    C1 --> D1["HTML Response"]
+    C2 --> D2["JSON: status, uptime, version"]
+    C3 --> D3["JSON: counter value, timestamp"]
+    C4 --> D4["HTML: Swagger UI"]
+    C5 --> D5["File content"]
+    
+    %% ---------------------------------------------------------------------------
+    %% Redis Storage
+    %% ---------------------------------------------------------------------------
+    C3 --> E["Redis: hit_counter"]
+    E -.->|persists| F["AOF File\n/app/data/appendonly.aof"]
+    
+    %% ---------------------------------------------------------------------------
+    %% Styling
+    %% ---------------------------------------------------------------------------
+    classDef action fill:#ffebee,stroke:#f44336
+    classDef process fill:#e3f2fd,stroke:#2196f3
+    classDef response fill:#e8f5e9,stroke:#4caf50
+    classDef storage fill:#f3e5f5,stroke:#9c27b0
+    
+    class A,B1,B2,B3,B4,B5 action
+    class C1,C2,C3,C4,C5 process
+    class D1,D2,D3,D4,D5 response
+    class E,F storage
+```
+
+
+%% ============================================================================
+%% DIAGRAM 6: Endpoint Reference Card
+%% ============================================================================
+
+```mermaid
+flowchart TD
+    %% ---------------------------------------------------------------------------
+    %% Endpoints
+    %% ---------------------------------------------------------------------------
+    subgraph Endpoints["📡 API Endpoints"]
+        direction TB
+        
+        getRoot["GET /\nLanding Page"]
+        getHealth["GET /health\nHealth Check"]
+        postCounter["POST /counter\nIncrement Counter"]
+        getDocs["GET /docs\nSwagger UI"]
+        getRedoc["GET /redoc\nReDoc"]
+        getPublic["GET /public/{file}\nStatic Files"]
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% Details
+    %% ---------------------------------------------------------------------------
+    getRoot -->|Returns| rootDetails["HTML Template\n200 OK"]
+    getHealth -->|Returns| healthDetails["JSON\nstatus, uptime, version\n200 OK"]
+    postCounter -->|Returns| counterDetails["JSON\ncounter, timestamp\n200 OK"]
+    getDocs -->|Returns| docsDetails["HTML\nInteractive API Docs\n200 OK"]
+    getRedoc -->|Returns| redocDetails["HTML\nAlternative API Docs\n200 OK"]
+    getPublic -->|Returns| publicDetails["File Content\n200 OK or 404"]
+    
+    %% ---------------------------------------------------------------------------
+    %% Method Colors
+    %% ---------------------------------------------------------------------------
+    classDef get fill:#e3f2fd,stroke:#1976d2
+    classDef post fill:#fff3e0,stroke:#f57c00
+    
+    class getRoot,getHealth,getDocs,getRedoc,getPublic get
+    class postCounter post
+    
+    class Endpoints fill:#fff,stroke:#333,stroke-width:3px
+```
+
+
+%% ============================================================================
+%% DIAGRAM 7: Deployment View
+%% ============================================================================
+
+```mermaid
+flowchart TB
+    %% ---------------------------------------------------------------------------
+    %% Development
+    %% ---------------------------------------------------------------------------
+    subgraph Dev["💻 Development Environment"]
+        devCompose["docker compose up -d --build"]
+        devApi["API Container\nwith --reload"]
+        devRedis["Redis Container\nredis:7-alpine"]
+        
+        devCompose --> devApi
+        devCompose --> devRedis
+        devApi --> devRedis
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% Production
+    %% ---------------------------------------------------------------------------
+    subgraph Prod["🚀 Production Environment"]
+        prodCompose["docker compose up -d"]
+        prodApi["API Container\nNo reload"]
+        prodRedis["Redis Container\nWith persistence"]
+        
+        prodCompose --> prodApi
+        prodCompose --> prodRedis
+        prodApi --> prodRedis
+    end
+    
+    %% ---------------------------------------------------------------------------
+    %% Deployment Flow
+    %% ---------------------------------------------------------------------------
+    Git[("Git Repository")] -->|clone| Dev
+    Dev -->|test| Commit[("Git Commit")]
+    Commit -->|push| Git
+    Git -->|pull| Prod
+    
+    %% ---------------------------------------------------------------------------
+    %% Styling
+    %% ---------------------------------------------------------------------------
+    classDef env fill:#fff,stroke:#333
+    class Dev,Prod env
+    
+    class Dev fill:#f0f8ff,stroke:#4682b4
+    class Prod fill:#fff0f5,stroke:#db7093
+```

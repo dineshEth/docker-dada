@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 import time
 from pathlib import Path
 
 app = FastAPI(title="Image Backend API")
 start_time = time.time()
+
+# Serve static files from public directory
+app.mount("/public", StaticFiles(directory="public"), name="public")
 
 # Load HTML template from file
 TEMPLATES_DIR = Path(__file__).parent / "templates"

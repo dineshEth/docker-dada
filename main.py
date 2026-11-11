@@ -8,6 +8,9 @@ from pathlib import Path
 app = FastAPI(title="Image Backend API")
 start_time = time.time()
 
+# Counter state
+counter = 0
+
 # Serve static files from public directory
 app.mount("/public", StaticFiles(directory="public"), name="public")
 
@@ -38,6 +41,26 @@ async def health_check():
         "uptime": uptime_str,
         "version": "1.0.0",
         "service": "Image Backend API"
+    }
+
+
+@app.post("/counter")
+async def increment_counter():
+    """POST endpoint that increments a global hit counter by 1.
+    
+    Returns the current counter value along with a UTC timestamp and metadata.
+    Each call to this endpoint increases the counter sequentially.
+    """
+    global counter
+    counter += 1
+    now = datetime.now(timezone.utc)
+    return {
+        "counter": counter,
+        "timestamp": now.isoformat(),
+        "description": "Global request counter incremented by 1",
+        "endpoint": "/counter",
+        "method": "POST",
+        "increment_by": 1
     }
 
 

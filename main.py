@@ -587,7 +587,7 @@ async def root():
         </html>
             """
 
-@app.get("/health", response_class=HTMLResponse)
+@app.get("/health")
 async def health_check():
     """Health check endpoint with timestamp and system status."""
     now = datetime.now(timezone.utc)
@@ -596,176 +596,14 @@ async def health_check():
     uptime_seconds = time.time() - start_time
     uptime_str = f"{int(uptime_seconds // 3600)}h {int((uptime_seconds % 3600) // 60)}m {int(uptime_seconds % 60)}s"
     
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Check | Image Backend</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {{
-            --primary: #a7c957;
-            --accent: #affc41;
-            --light: #b2ff9e;
-            --mint: #1dd3b0;
-            --dark: #386641;
-            --background: #101810;
-            --surface: #172319;
-            --text: #f1f8ed;
-            --muted: #a5b5a2;
-        }}
-
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-
-        body {{
-            font-family: 'Inter', sans-serif;
-            background: var(--background);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }}
-
-        .health-container {{
-            background: var(--surface);
-            border: 1px solid #a7c95730;
-            border-radius: 25px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 30px 80px #00000050;
-            text-align: center;
-        }}
-
-        .health-icon {{
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }}
-
-        @keyframes pulse {{
-            0% {{ transform: scale(1); }}
-            50% {{ transform: scale(1.05); }}
-            100% {{ transform: scale(1); }}
-        }}
-
-        .status-badge {{
-            display: inline-block;
-            padding: 10px 25px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 16px;
-            margin-bottom: 25px;
-            background: linear-gradient(135deg, #386641, #1dd3b0);
-            color: white;
-            box-shadow: 0 0 20px #1dd3b050;
-        }}
-
-        .health-title {{
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 30px;
-            color: var(--primary);
-        }}
-
-        .health-details {{
-            background: #0b120d;
-            border-radius: 15px;
-            padding: 25px;
-            text-align: left;
-        }}
-
-        .detail-row {{
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #ffffff10;
-        }}
-
-        .detail-row:last-child {{
-            border-bottom: none;
-        }}
-
-        .detail-label {{
-            color: var(--muted);
-            font-size: 14px;
-        }}
-
-        .detail-value {{
-            color: var(--light);
-            font-weight: 700;
-            font-size: 14px;
-        }}
-
-        .back-link {{
-            display: inline-block;
-            margin-top: 30px;
-            color: var(--mint);
-            font-size: 14px;
-            transition: .2s;
-        }}
-
-        .back-link:hover {{
-            color: var(--accent);
-            text-shadow: 0 0 10px var(--mint);
-        }}
-
-        .timestamp {{
-            font-family: monospace;
-            font-size: 12px;
-            color: var(--mint);
-            margin-top: 20px;
-            padding: 10px;
-            background: #00000020;
-            border-radius: 8px;
-            overflow-wrap: anywhere;
-        }}
-    </style>
-</head>
-
-<body>
-    <div class="health-container">
-        <div class="health-icon">✅</div>
-        <div class="status-badge">HEALTHY</div>
-        
-        <h1 class="health-title">Image Backend API</h1>
-        
-        <div class="health-details">
-            <div class="detail-row">
-                <span class="detail-label">Status</span>
-                <span class="detail-value">Running</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Version</span>
-                <span class="detail-value">1.0.0</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Uptime</span>
-                <span class="detail-value">{uptime_str}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Service</span>
-                <span class="detail-value">Image Backend</span>
-            </div>
-        </div>
-        
-        <div class="timestamp">
-            <strong>Timestamp:</strong> {timestamp}
-        </div>
-        
-        <a href="/" class="back-link">← Back to Home</a>
-    </div>
-</body>
-</html>"""
+    return {
+        "status": "healthy",
+        "message": "API is running",
+        "timestamp": timestamp,
+        "uptime": uptime_str,
+        "version": "1.0.0",
+        "service": "Image Backend API"
+    }
 
 
 if __name__ == "__main__":
